@@ -97,18 +97,18 @@ jobs:
         run: |
           # Entrar en la carpeta de configuracion
           cd libs/hbb_common/src
-          
-          # Reemplaza el SERVIDOR 
-          # Usamos | en lugar de / como separador por seguridad
-          sed -i "s|.*pub const RENDEZVOUS_SERVER.*|pub const RENDEZVOUS_SERVER: \&'static str = \"virtualnas.synology.me\";|" config.rs
-          
+
+          # --- CORRECCIÓN CRÍTICA ---
+          # Añadimos ":" despues de SERVER para no borrar RENDEZVOUS_SERVERS (plural)
+          # Esto busca exactamente "RENDEZVOUS_SERVER:"
+          sed -i "s|.*pub const RENDEZVOUS_SERVER:.*|pub const RENDEZVOUS_SERVER: \&'static str = \"virtualnas.synology.me\";|" config.rs
+
           # Reemplaza la KEY
-          sed -i "s|.*pub const RS_PUB_KEY.*|pub const RS_PUB_KEY: \&'static str = \"YTcFdCEsXD4PrzX7UYa3yIBtCMBnGtjploRNGSfvlUA\";|" config.rs
-          
-          # Verificación (Importante: revisa los logs de GitHub Actions si falla la conexión)
-          echo "--- VERIFICANDO CAMBIOS EN CONFIG.RS ---"
-          grep "RENDEZVOUS_SERVER" config.rs
-          grep "RS_PUB_KEY" config.rs
+          sed -i "s|.*pub const RS_PUB_KEY:.*|pub const RS_PUB_KEY: \&'static str = \"YTcFdCEsXD4PrzX7UYa3yIBtCMBnGtjploRNGSfvlUA\";|" config.rs
+
+          # Verificación
+          echo "--- VERIFICANDO QUE EXISTAN AMBAS VARIABLES ---"
+          grep "const RENDEZVOUS_SERVER" config.rs
 
       - name: Restore bridge files
         uses: actions/download-artifact@master
