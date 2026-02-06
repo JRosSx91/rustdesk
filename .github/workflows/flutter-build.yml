@@ -44,7 +44,7 @@ env:
   #signing keys env variable checks
   ANDROID_SIGNING_KEY: "${{ secrets.ANDROID_SIGNING_KEY }}"
   MACOS_P12_BASE64: "${{ secrets.MACOS_P12_BASE64 }}"
-  UPLOAD_ARTIFACT: "${{ inputs.upload-artifact }}"
+  UPLOAD_ARTIFACT: "true"
   SIGN_BASE_URL: "${{ secrets.SIGN_BASE_URL }}-2"
 
 jobs:
@@ -91,6 +91,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+      
+      - name: Hardcode Personalizado (Server y Key)
+        shell: bash
+        run: |
+          # Entrar en la carpeta de configuracion
+          cd libs/hbb_common/src
+
+          # --- CORRECCIÓN CRÍTICA ---
+          # Añadimos ":" despues de SERVER para no borrar RENDEZVOUS_SERVERS (plural)
+          # Esto busca exactamente "RENDEZVOUS_SERVER:"
+          sed -i "s|.*pub const RENDEZVOUS_SERVER:.*|pub const RENDEZVOUS_SERVER: \&'static str = \"virtualnas.synology.me\";|" config.rs
+
+          # Reemplaza la KEY
+          sed -i "s|.*pub const RS_PUB_KEY:.*|pub const RS_PUB_KEY: \&'static str = \"YTcFdCEsXD4PrzX7UYa3yIBtCMBnGtjploRNGSfvlUA\";|" config.rs
+
+          # Verificación
+          echo "--- VERIFICANDO QUE EXISTAN AMBAS VARIABLES ---"
+          grep "const RENDEZVOUS_SERVER" config.rs
 
       - name: Restore bridge files
         uses: actions/download-artifact@master
