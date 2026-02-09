@@ -170,7 +170,7 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Local Port", "Puerto local"),
         ("Local Address", "Dirección Local"),
         ("Change Local Port", "Cambiar Puerto Local"),
-        ("setup_server_tip", "Conectado al servidor de Virtual Life Tech."),
+        ("setup_server_tip", "Conectado al servidor de Virtual Life Tech. Telf. de asistencia: (93) 200 01 40."),
         ("Too short, at least 6 characters.", "Demasiado corto, al menos 6 caracteres."),
         ("The confirmation is not identical.", "La confirmación no coincide."),
         ("Permissions", "Permisos"),
