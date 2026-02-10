@@ -93,6 +93,16 @@ class _DesktopHomePageState extends State<DesktopHomePage>
       buildTip(context),
       if (!isOutgoingOnly) buildIDBoard(context),
       if (!isOutgoingOnly) buildPasswordBoard(context),
+      const SizedBox(height: 30), 
+      Align(
+        alignment: Alignment.center,
+        child: Image.asset(
+          'assets/images/logo_vl.png',
+          width: 180, // Cambia este número para hacer el logo más grande/pequeño
+          fit: BoxFit.contain,
+        ),
+      ),
+      const SizedBox(height: 10),
       FutureBuilder<Widget>(
         future: Future.value(
             Obx(() => buildHelpCards(stateGlobal.updateUrl.value))),
