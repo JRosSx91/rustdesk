@@ -674,10 +674,11 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                           ? <Widget>[
                               Center(
                                   child: InkWell(
-                                      onTap: () async =>
-                                          await launchUrl(Uri.parse(link!)),
+                                      onTap: () {
+                                        launchUrl(Uri.parse('https://www.vlt.es')); 
+                                      },
                                       child: Text(
-                                        translate(help),
+                                        "Powered by Virtual Life Tech",
                                         style: TextStyle(
                                             decoration:
                                                 TextDecoration.underline,
