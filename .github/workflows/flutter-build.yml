@@ -219,29 +219,60 @@ jobs:
             ls -l ./libs/portable/Runner.res;
           fi
 
-      # --- INICIO BLOQUE PORTABLE ---
+      # --- INICIO BLOQUE PORTABLE CORREGIDO ---
       - name: Instalar Inno Setup
         run: choco install innosetup
 
-      - name: Crear EXE Unico (Portable)
+      - name: Crear EXE Unico (Generando ISS al vuelo)
         run: |
-          # 1. Crear la estructura de carpetas que espera el script de RustDesk
-          New-Item -ItemType Directory -Force -Path "target/release"
+          # 1. Crear la estructura de salida limpia
+          $targetDir = "target/release"
+          New-Item -ItemType Directory -Force -Path $targetDir
           
-          # 2. Copiar tu compilación limpia a esa carpeta
-          Copy-Item -Path "rustdesk/*" -Destination "target/release" -Recurse -Force
+          # 2. Copiar los archivos compilados de Flutter
+          Copy-Item -Path "rustdesk/*" -Destination $targetDir -Recurse -Force
           
-          # 3. Compilar el instalador/portable usando Inno Setup
-          # NOTA: Esto generará un archivo en la carpeta 'Output' (normalmente en la raiz)
-          iscc "res/rustdesk.iss"
+          # 3. GENERAR EL ARCHIVO .ISS MANUALMENTE (Para evitar errores de "archivo no encontrado")
+          # Esto crea un script de instalador básico y funcional
+          $issContent = @"
+          [Setup]
+          AppName=RustDesk
+          AppVersion=${{ env.VERSION }}
+          DefaultDirName={autopf}\RustDesk
+          OutputDir=Output
+          OutputBaseFilename=rustdesk-portable
+          Compression=lzma2/ultra64
+          SolidCompression=yes
+          PrivilegesRequired=lowest
+          Uninstallable=no
+          InfoBeforeFile=
 
-          # 4. Preparar la carpeta de salida para la firma/publicación
+          [Files]
+          ; Empaquetar todo lo que haya en target/release
+          Source: "target\release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+          
+          [Icons]
+          Name: "{group}\RustDesk"; Filename: "{app}\rustdesk.exe"
+          "@
+          
+          # Guardamos este contenido en un archivo temporal
+          Set-Content -Path "portable_config.iss" -Value $issContent
+
+          # 4. Compilar usando el archivo que acabamos de crear
+          iscc "portable_config.iss"
+
+          # 5. Preparar carpeta de firma
           New-Item -ItemType Directory -Force -Path "SignOutput"
           
-          # 5. Mover y renombrar el archivo creado para que GitHub lo detecte
-          # Buscamos cualquier .exe en Output y lo movemos con un nombre reconocible
-          Move-Item -Path "Output\*.exe" -Destination "SignOutput\rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}-portable.exe" -Force
-      # --- FIN BLOQUE PORTABLE ---
+          # 6. Mover el resultado (Ahora sí existirá la carpeta Output)
+          if (Test-Path "Output\rustdesk-portable.exe") {
+              Move-Item -Path "Output\rustdesk-portable.exe" -Destination "SignOutput\rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}-portable.exe" -Force
+              Write-Host "✅ Portable creado correctamente en SignOutput"
+          } else {
+              Write-Error "❌ No se encontró el ejecutable en Output. Inno Setup falló."
+              exit 1
+          }
+      # --- FIN BLOQUE PORTABLE CORREGIDO ---
 
       - name: Download RustDeskTempTopMostWindow artifacts
         uses: actions/download-artifact@master
