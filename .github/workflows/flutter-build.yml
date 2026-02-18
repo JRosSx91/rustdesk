@@ -219,6 +219,30 @@ jobs:
             ls -l ./libs/portable/Runner.res;
           fi
 
+      # --- INICIO BLOQUE PORTABLE ---
+      - name: Instalar Inno Setup
+        run: choco install innosetup
+
+      - name: Crear EXE Unico (Portable)
+        run: |
+          # 1. Crear la estructura de carpetas que espera el script de RustDesk
+          New-Item -ItemType Directory -Force -Path "target/release"
+          
+          # 2. Copiar tu compilación limpia a esa carpeta
+          Copy-Item -Path "rustdesk/*" -Destination "target/release" -Recurse -Force
+          
+          # 3. Compilar el instalador/portable usando Inno Setup
+          # NOTA: Esto generará un archivo en la carpeta 'Output' (normalmente en la raiz)
+          iscc "res/rustdesk.iss"
+
+          # 4. Preparar la carpeta de salida para la firma/publicación
+          New-Item -ItemType Directory -Force -Path "SignOutput"
+          
+          # 5. Mover y renombrar el archivo creado para que GitHub lo detecte
+          # Buscamos cualquier .exe en Output y lo movemos con un nombre reconocible
+          Move-Item -Path "Output\*.exe" -Destination "SignOutput\rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}-portable.exe" -Force
+      # --- FIN BLOQUE PORTABLE ---
+
       - name: Download RustDeskTempTopMostWindow artifacts
         uses: actions/download-artifact@master
         if: ${{ inputs.upload-artifact }}
